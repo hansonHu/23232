@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="Expires" content="-1">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta name="description" content="全网营销系统提供商">
+    <link href="./css/worker_deliver.css" rel="stylesheet"/>
+    <script src="./scripts/laytpl.js"></script>
+    <script src="./scripts/layer/layer.m.js"></script>
+    <link href="./scripts/layer/need/layer.css" type="text/css" rel="styleSheet" id="layermcss">
+    <title>服务中心</title>
+    <style>
+        body,html{
+            height: 100%;
+        }
+    </style>
+
+</head>
+<body style="background:url(./images/login_02.jpg)  no-repeat #ebf3f8; background-size: 100% 100%;">
+<section class="Land">
+    <div class="Land_top">
+        <!--<span class="fillet" style="background: url(<if condition="$config['wechat_share_img']">{maycms{$config.wechat_share_img}<else/>{maycms{$config.site_logo}</if>) center no-repeat;background-size: contain;"></span>-->
+        <img src="./images/logo.png" alt="">
+        <h2>服务中心</h2>
+    </div>
+    <div class="Land_end">
+        <ul>
+            <li class="number">
+                <span class="userIcon"></span>
+                <input type="text" placeholder="请输入您的账号" id="username">
+                <a href="javascript:void(0)"></a>
+            </li>
+            <li class="Password">
+                <span class="passwordIcon"></span>
+                <input type="password" placeholder="请输入您的密码" id="login_pwd">
+                <a href="javascript:void(0)"></a>
+            </li>
+            <li class="Landd">
+                <input type="button" value="登录" id="login_form">
+            </li>
+        </ul>
+    </div>
+</section>
+</body>
+<script type="text/javascript">
+    var store_index = "{maycms{:U('index')}";
+    <if condition="!empty($refererUrl)">
+    store_index = "{maycms{$refererUrl}";
+    </if>
+    var openid = false;
+    <if condition="isset($openid) AND !empty($openid)">
+    openid = "{maycms{$openid}";
+    </if>
+    $(function(){
+        $('#login_account').focus();
+        var is_click_login = false;
+        $('#login_form').click(function(){
+            if (is_click_login) return false;
+            is_click_login = true;
+            if ($('#username').val()=='') {
+                layer.open({title:['登录提示：','background-color:#FF658E;color:#fff;'],content:'请输入帐号~',btn: ['确定'],end:function(){}});
+                $('#username').focus();
+                is_click_login = false;
+                return false;
+            } else if (! (/^1[3|4|5|7|8|9][0-9]\d{4,8}$/.test($('#username').val()))) {
+                layer.open({title:['登录提示：','background-color:#FF658E;color:#fff;'],content:'手机号格式不正确~',btn: ['确定'],end:function(){}});
+                $('#username').focus();
+                is_click_login = false;
+                return false;
+            } else if ($('#login_pwd').val()=='') {
+                layer.open({title:['登录提示：','background-color:#FF658E;color:#fff;'],content:'请输入密码~',btn: ['确定'],end:function(){}});
+                $('#login_pwd').focus();
+                is_click_login = false;
+                return false;
+            } else {
+                $.post("{maycms{:U('login')}", {'username':$('#username').val(), 'pwd':$('#login_pwd').val()}, function(result) {
+                    is_click_login = false;
+                    if (result) {
+                        if (result.error == 0 && result.is_bind == 0 && openid) {
+                            layer.open({
+                                title:['提示：','background-color:#FF658E;color:#fff;'],
+                                content:'系统检测到您是在微信中访问的，是否需要绑定微信号，下次访问可以免登录！',
+                                btn: ['是', '否'],
+                                shadeClose: false,
+                                yes: function(){
+                                    $.post("/wap.php?g=Wap&c=Workerstaff&a=freeLogin",function(ret){
+                                        if(!ret.error){
+                                            layer.open({title:['成功提示：','background-color:#FF658E;color:#fff;'],content:'恭喜您绑定成功！',btn: ['确定'],end:function(){window.parent.location = store_index;}});
+                                        }else{
+                                            layer.open({
+                                                title:['错误提示：','background-color:#FF658E;color:#fff;'],
+                                                content:ret.msg,
+                                                btn: ['确定'],
+                                                end:function(){
+                                                    window.parent.location = store_index;
+                                                }
+                                            });
+                                        }
+                                    },'JSON');
+
+                                }, no: function(){
+                                    setTimeout(function(){
+                                        window.parent.location = store_index;
+                                    },1000);
+                                }
+                            });
+                        } else if(result.error == 0){
+                            setTimeout(function(){
+                                window.parent.location = store_index;
+                            },1000);
+                        } else {
+                            $('#login_'+result.dom_id).focus();
+                            layer.open({content: result.msg, skin: 'msg', time: 2});
+                        }
+                    } else {
+                        layer.open({title:['登录提示：','background-color:#FF658E;color:#fff;'],content:'登录出现异常，请重试~',btn: ['确定'],end:function(){}});
+                    }
+                },'JSON');
+            }
+            return false;
+        });
+    });
+    $("body").css({"height":$(window).height()});
+    $(".Land_end input").focus(function(){
+        $(this).siblings("a").show();
+    });
+    $(".Land_end a").click(function(){
+        $(this).hide();
+        $(this).siblings("input").val("");
+    });
+</script>
+</html>
